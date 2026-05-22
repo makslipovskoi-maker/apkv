@@ -8,7 +8,7 @@ import '../repositories/app_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_widgets.dart';
 
-enum ScheduleMode { all, today, tomorrow, urgent, problems }
+enum ScheduleMode { all, week, today, tomorrow, urgent, problems }
 
 class ScheduleScreen extends StatefulWidget {
   const ScheduleScreen({super.key, required this.user, required this.mode});
@@ -24,8 +24,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   final _repo = AppRepository();
   late Future<List<Trip>> _future;
 
-  bool get _canEdit =>
-      widget.user.role == UserRole.registrar || widget.user.role == UserRole.mechanic;
+  bool get _canEdit => widget.user.role == UserRole.registrar || widget.user.role == UserRole.mechanic;
 
   @override
   void initState() {
@@ -39,6 +38,16 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         return _repo.trips(date: todayOnly());
       case ScheduleMode.tomorrow:
         return _repo.trips(date: tomorrowOnly());
+      case ScheduleMode.week:
+        final trips = await _repo.trips();
+        final start = todayOnly();
+        final end = start.add(const Duration(days: 6));
+        return trips.where((trip) {
+          final date = DateTime.tryParse(trip.departureDate);
+          if (date == null) return false;
+          final only = DateTime(date.year, date.month, date.day);
+          return !only.isBefore(start) && !only.isAfter(end);
+        }).toList();
       case ScheduleMode.problems:
         return _repo.trips(problems: true);
       case ScheduleMode.urgent:
@@ -55,6 +64,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         return 'Рейсы сегодня';
       case ScheduleMode.tomorrow:
         return 'Рейсы завтра';
+      case ScheduleMode.week:
+        return 'График на неделю';
       case ScheduleMode.problems:
         return 'Проблемы';
       case ScheduleMode.urgent:
@@ -62,6 +73,13 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       case ScheduleMode.all:
         return 'Главный график';
     }
+  }
+
+  String get _subtitle {
+    if (widget.mode != ScheduleMode.week) return '';
+    final start = todayOnly();
+    final end = start.add(const Duration(days: 6));
+    return '${displayDate(dbDate(start))} — ${displayDate(dbDate(end))}';
   }
 
   void _refresh() {
@@ -73,10 +91,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       await _repo.updateTrip(
         trip,
         widget.user,
-        {
-          'status': status,
-          if (status == statusDone) 'completed_at': DateTime.now().toIso8601String(),
-        },
+        {'status': status, if (status == statusDone) 'completed_at': DateTime.now().toIso8601String()},
         action: status == statusDone ? 'рейс закрыт' : 'изменён статус рейса',
         oldValue: trip.status,
         newValue: status,
@@ -102,14 +117,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           decoration: const InputDecoration(labelText: 'Комментарий'),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Отмена'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, controller.text),
-            child: const Text('СОХРАНИТЬ'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена')),
+          ElevatedButton(onPressed: () => Navigator.pop(context, controller.text), child: const Text('СОХРАНИТЬ')),
         ],
       ),
     );
@@ -141,39 +150,20 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         content: SingleChildScrollView(
           child: Column(
             children: [
-              TextField(
-                controller: vehicleTime,
-                decoration: const InputDecoration(labelText: 'Время подачи'),
-              ),
+              TextField(controller: vehicleTime, decoration: const InputDecoration(labelText: 'Время подачи')),
               const SizedBox(height: 10),
-              TextField(
-                controller: recommendedTime,
-                decoration: const InputDecoration(labelText: 'Рекомендуемое время'),
-              ),
+              TextField(controller: recommendedTime, decoration: const InputDecoration(labelText: 'Рекомендуемое время')),
               const SizedBox(height: 10),
-              TextField(
-                controller: vehicle,
-                decoration: const InputDecoration(labelText: 'Машина'),
-              ),
+              TextField(controller: vehicle, decoration: const InputDecoration(labelText: 'Машина')),
               const SizedBox(height: 10),
-              TextField(
-                controller: driver,
-                decoration: const InputDecoration(labelText: 'Водитель'),
-              ),
+              TextField(controller: driver, decoration: const InputDecoration(labelText: 'Водитель')),
               const SizedBox(height: 10),
-              TextField(
-                controller: comment,
-                maxLines: 3,
-                decoration: const InputDecoration(labelText: 'Комментарий'),
-              ),
+              TextField(controller: comment, maxLines: 3, decoration: const InputDecoration(labelText: 'Комментарий')),
             ],
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Отмена'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена')),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, {
               'vehicle_time': normalizeTime(vehicleTime.text),
@@ -192,8 +182,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
     final updates = <String, dynamic>{
       'vehicle_time': result['vehicle_time']!.isEmpty ? null : result['vehicle_time'],
-      'recommended_time':
-          result['recommended_time']!.isEmpty ? null : result['recommended_time'],
+      'recommended_time': result['recommended_time']!.isEmpty ? null : result['recommended_time'],
       'vehicle': result['vehicle']!.isEmpty ? null : result['vehicle'],
       'driver_name': result['driver_name']!.isEmpty ? null : result['driver_name'],
       'comment': result['comment'],
@@ -215,35 +204,41 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   Widget build(BuildContext context) {
     return AppPage(
       title: _title,
-      actions: [
-        IconButton(onPressed: _refresh, icon: const Icon(Icons.refresh)),
-      ],
+      actions: [IconButton(onPressed: _refresh, icon: const Icon(Icons.refresh))],
       child: FutureBuilder<List<Trip>>(
         future: _future,
         builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return const EmptyState(
-              text: 'Нет связи с сервером',
-              icon: Icons.cloud_off_outlined,
-            );
-          }
+          if (snapshot.connectionState != ConnectionState.done) return const Center(child: CircularProgressIndicator());
+          if (snapshot.hasError) return const EmptyState(text: 'Нет связи с сервером', icon: Icons.cloud_off_outlined);
 
           final trips = snapshot.data ?? [];
           if (trips.isEmpty) return const EmptyState(text: 'Рейсов нет');
 
           return ListView.builder(
-            itemCount: trips.length,
-            itemBuilder: (context, index) => _TripCard(
-              trip: trips[index],
-              canEdit: _canEdit,
-              onDone: () => _setStatus(trips[index], statusDone),
-              onCancel: () => _setStatus(trips[index], statusCancelled),
-              onProblem: () => _markProblem(trips[index]),
-              onEdit: () => _editTrip(trips[index]),
-            ),
+            itemCount: trips.length + (widget.mode == ScheduleMode.week ? 1 : 0),
+            itemBuilder: (context, index) {
+              if (widget.mode == ScheduleMode.week && index == 0) {
+                final totalGuests = trips.fold<int>(0, (sum, trip) => sum + trip.peopleCount);
+                final attention = trips.where((trip) => trip.needsAttention).length;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: PremiumHeroCard(
+                    title: 'Неделя: ${trips.length} рейсов',
+                    subtitle: '$_subtitle\nГостей: $totalGuests · Требуют внимания: $attention',
+                    trailing: const Icon(Icons.calendar_view_week_outlined, color: Colors.white, size: 42),
+                  ),
+                );
+              }
+              final trip = trips[widget.mode == ScheduleMode.week ? index - 1 : index];
+              return _TripCard(
+                trip: trip,
+                canEdit: _canEdit,
+                onDone: () => _setStatus(trip, statusDone),
+                onCancel: () => _setStatus(trip, statusCancelled),
+                onProblem: () => _markProblem(trip),
+                onEdit: () => _editTrip(trip),
+              );
+            },
           );
         },
       ),
@@ -252,14 +247,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 }
 
 class _TripCard extends StatelessWidget {
-  const _TripCard({
-    required this.trip,
-    required this.canEdit,
-    required this.onDone,
-    required this.onCancel,
-    required this.onProblem,
-    required this.onEdit,
-  });
+  const _TripCard({required this.trip, required this.canEdit, required this.onDone, required this.onCancel, required this.onProblem, required this.onEdit});
 
   final Trip trip;
   final bool canEdit;
@@ -284,10 +272,7 @@ class _TripCard extends StatelessWidget {
               runSpacing: 10,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Text(
-                  'Рейс ${trip.tripCode}',
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
-                ),
+                Text('Рейс ${trip.tripCode}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
                 StatusBadge(status: trip.status),
                 if (missingDriver) const StatusBadge(status: 'Нет водителя'),
                 if (missingVehicle) const StatusBadge(status: 'Нет машины'),
@@ -309,27 +294,15 @@ class _TripCard extends StatelessWidget {
             InfoRow('Водитель', trip.driverName, icon: Icons.badge_outlined),
             InfoRow('Водитель подтвердил', displayDateTime(trip.driverConfirmedAt)),
             InfoRow('Механик подтвердил', displayDateTime(trip.mechanicConfirmedAt)),
-            if (trip.comment != null && trip.comment!.isNotEmpty)
-              InfoRow('Комментарий', trip.comment),
+            if (trip.comment != null && trip.comment!.isNotEmpty) InfoRow('Комментарий', trip.comment),
             if (trip.problem != null && trip.problem!.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.red.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.red),
-                  ),
-                  child: Text(
-                    'Проблема: ${trip.problem}',
-                    style: const TextStyle(
-                      color: AppColors.red,
-                      fontSize: 17,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
+                  decoration: BoxDecoration(color: AppColors.red.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.red)),
+                  child: Text('Проблема: ${trip.problem}', style: const TextStyle(color: AppColors.red, fontSize: 17, fontWeight: FontWeight.w800)),
                 ),
               ),
             if (canEdit) ...[
@@ -338,26 +311,10 @@ class _TripCard extends StatelessWidget {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  OutlinedButton.icon(
-                    onPressed: onEdit,
-                    icon: const Icon(Icons.edit),
-                    label: const Text('Изменить'),
-                  ),
-                  OutlinedButton.icon(
-                    onPressed: onProblem,
-                    icon: const Icon(Icons.report_problem_outlined),
-                    label: const Text('Проблема'),
-                  ),
-                  OutlinedButton.icon(
-                    onPressed: onCancel,
-                    icon: const Icon(Icons.cancel_outlined),
-                    label: const Text('Отменить'),
-                  ),
-                  ElevatedButton.icon(
-                    onPressed: onDone,
-                    icon: const Icon(Icons.done_all),
-                    label: const Text('Закрыть'),
-                  ),
+                  OutlinedButton.icon(onPressed: onEdit, icon: const Icon(Icons.edit), label: const Text('Изменить')),
+                  OutlinedButton.icon(onPressed: onProblem, icon: const Icon(Icons.report_problem_outlined), label: const Text('Проблема')),
+                  OutlinedButton.icon(onPressed: onCancel, icon: const Icon(Icons.cancel_outlined), label: const Text('Отменить')),
+                  ElevatedButton.icon(onPressed: onDone, icon: const Icon(Icons.done_all), label: const Text('Закрыть')),
                 ],
               ),
             ],
