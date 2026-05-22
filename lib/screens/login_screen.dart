@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../core/constants.dart';
 import '../models/app_user.dart';
 import '../repositories/app_repository.dart';
-import '../services/app_config.dart';
 import '../services/supabase_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_widgets.dart';
@@ -35,14 +34,6 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    if (!AppConfig.isConfigured || !SupabaseService.instance.isConfigured) {
-      setState(() {
-        _error =
-            'Supabase не настроен. Укажите SUPABASE_URL и SUPABASE_ANON_KEY при сборке.';
-      });
-      return;
-    }
-
     setState(() {
       _loading = true;
       _error = null;
@@ -69,6 +60,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final demoMode = !SupabaseService.instance.isConfigured;
+
     return Scaffold(
       backgroundColor: AppColors.beige,
       body: SafeArea(
@@ -83,6 +76,26 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Column(
                     children: [
                       const LogoHeader(),
+                      const SizedBox(height: 18),
+                      if (demoMode)
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: AppColors.sand,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: AppColors.orange),
+                          ),
+                          child: const Text(
+                            'Демо-режим без сервера\nPIN: 1111 регистратор · 2222 корпус · 3333 водитель · 4444 механик · 5555 руководитель',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.deepBlue,
+                            ),
+                          ),
+                        ),
                       const SizedBox(height: 24),
                       TextField(
                         controller: _pinController,
