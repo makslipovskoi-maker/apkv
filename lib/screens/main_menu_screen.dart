@@ -15,6 +15,7 @@ import 'my_requests_screen.dart';
 import 'notifications_screen.dart';
 import 'registrar/create_trip_screen.dart';
 import 'registrar/requests_screen.dart';
+import 'registrar/two_week_schedule_screen.dart';
 import 'request_form_screen.dart';
 import 'schedule_screen.dart';
 
@@ -29,7 +30,7 @@ class MainMenuScreen extends StatelessWidget {
       case UserRole.registrar:
         return [
           notifications,
-          _MenuItem('График на неделю', 'Все рейсы на ближайшие 7 дней', Icons.calendar_view_week_outlined, () => ScheduleScreen(user: user, mode: ScheduleMode.week)),
+          _MenuItem('График на 2 недели', 'Таблица рейсов по дням', Icons.table_chart_outlined, () => TwoWeekScheduleScreen(user: user)),
           _MenuItem('Заявки', 'Новые заявки от корпусов', Icons.assignment_outlined, () => RequestsScreen(user: user)),
           _MenuItem('Главный график', 'Все рейсы и выезды', Icons.calendar_month_outlined, () => ScheduleScreen(user: user, mode: ScheduleMode.all)),
           _MenuItem('Создать рейс', 'Назначить время, машину и водителя', Icons.add_road_outlined, () => CreateTripScreen(user: user)),
