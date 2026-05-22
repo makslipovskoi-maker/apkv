@@ -20,6 +20,7 @@ class TwoWeekCalendarScreen extends StatefulWidget {
 class _TwoWeekCalendarScreenState extends State<TwoWeekCalendarScreen> {
   final _repo = AppRepository();
   late Future<List<Trip>> _future;
+  DateTime _periodStart = todayOnly();
 
   static const _weekDays = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'];
 
@@ -29,21 +30,34 @@ class _TwoWeekCalendarScreenState extends State<TwoWeekCalendarScreen> {
     _future = _load();
   }
 
+  DateTime get _periodEnd => _periodStart.add(const Duration(days: 13));
+  List<DateTime> get _days => List.generate(14, (i) => _periodStart.add(Duration(days: i)));
+
   Future<List<Trip>> _load() async {
-    final start = todayOnly();
-    final end = start.add(const Duration(days: 13));
     final trips = await _repo.trips();
     return trips.where((trip) {
       final parsed = DateTime.tryParse(trip.departureDate);
       if (parsed == null) return false;
       final date = DateTime(parsed.year, parsed.month, parsed.day);
-      return !date.isBefore(start) && !date.isAfter(end);
+      return !date.isBefore(_periodStart) && !date.isAfter(_periodEnd);
     }).toList();
   }
 
   void _refresh() => setState(() => _future = _load());
 
-  List<DateTime> get _days => List.generate(14, (i) => todayOnly().add(Duration(days: i)));
+  void _movePeriod(int days) {
+    setState(() {
+      _periodStart = _periodStart.add(Duration(days: days));
+      _future = _load();
+    });
+  }
+
+  void _currentPeriod() {
+    setState(() {
+      _periodStart = todayOnly();
+      _future = _load();
+    });
+  }
 
   Map<String, List<Trip>> _groups(List<Trip> trips) {
     final map = <String, List<Trip>>{};
@@ -140,8 +154,7 @@ class _TwoWeekCalendarScreenState extends State<TwoWeekCalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final start = todayOnly();
-    final end = start.add(const Duration(days: 13));
+    final todayKey = dbDate(todayOnly());
     return Scaffold(
       appBar: AppBar(
         title: const Text('Календарь выездов'),
@@ -169,8 +182,19 @@ class _TwoWeekCalendarScreenState extends State<TwoWeekCalendarScreen> {
                 children: [
                   PremiumHeroCard(
                     title: 'Календарь на 2 недели',
-                    subtitle: '${displayDate(dbDate(start))} — ${displayDate(dbDate(end))}\nРейсов: ${trips.length} · Гостей: $guests · Внимание: $attention',
+                    subtitle: '${displayDate(dbDate(_periodStart))} — ${displayDate(dbDate(_periodEnd))}\nРейсов: ${trips.length} · Гостей: $guests · Внимание: $attention',
                     trailing: const Icon(Icons.calendar_month_outlined, color: Colors.white, size: 42),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      OutlinedButton.icon(onPressed: () => _movePeriod(-14), icon: const Icon(Icons.chevron_left), label: const Text('Прошлые 2 недели')),
+                      ElevatedButton.icon(onPressed: _currentPeriod, icon: const Icon(Icons.today_outlined), label: const Text('Текущие')),
+                      OutlinedButton.icon(onPressed: () => _movePeriod(14), icon: const Icon(Icons.chevron_right), label: const Text('Следующие 2 недели')),
+                    ],
                   ),
                   const SizedBox(height: 14),
                   SingleChildScrollView(
@@ -193,7 +217,7 @@ class _TwoWeekCalendarScreenState extends State<TwoWeekCalendarScreen> {
                                 _CalendarDay(
                                   date: dbDate(day),
                                   trips: groups[dbDate(day)] ?? const [],
-                                  isToday: dbDate(day) == dbDate(todayOnly()),
+                                  isToday: dbDate(day) == todayKey,
                                   onTap: () => _openDay(dbDate(day), groups[dbDate(day)] ?? const []),
                                 ),
                             ],
