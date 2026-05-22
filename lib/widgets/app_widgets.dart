@@ -1,7 +1,28 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
+import '../assets/diluch_logo_data.dart';
 import '../core/constants.dart';
 import '../theme/app_theme.dart';
+
+class DiluchLogo extends StatelessWidget {
+  const DiluchLogo({super.key, this.height = 110, this.fit = BoxFit.contain});
+
+  final double height;
+  final BoxFit fit;
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.memory(
+      base64Decode(diluchLogoWebpBase64),
+      height: height,
+      fit: fit,
+      gaplessPlayback: true,
+      errorBuilder: (_, __, ___) => const _FallbackLogo(),
+    );
+  }
+}
 
 class LogoHeader extends StatelessWidget {
   const LogoHeader({super.key, this.compact = false});
@@ -13,25 +34,24 @@ class LogoHeader extends StatelessWidget {
       children: [
         Container(
           width: double.infinity,
-          constraints: BoxConstraints(maxWidth: compact ? 300 : 520),
-          padding: EdgeInsets.all(compact ? 12 : 18),
+          constraints: BoxConstraints(maxWidth: compact ? 330 : 520),
+          padding: EdgeInsets.symmetric(
+            horizontal: compact ? 18 : 24,
+            vertical: compact ? 14 : 22,
+          ),
           decoration: BoxDecoration(
-            color: AppColors.midnight,
-            borderRadius: BorderRadius.circular(compact ? 22 : 30),
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(compact ? 24 : 32),
+            border: Border.all(color: AppColors.line),
             boxShadow: [
               BoxShadow(
-                color: AppColors.blue.withValues(alpha: 0.18),
-                blurRadius: 30,
+                color: AppColors.blue.withValues(alpha: 0.12),
+                blurRadius: 28,
                 offset: const Offset(0, 14),
               ),
             ],
           ),
-          child: Image.asset(
-            'assets/logo.jpg',
-            height: compact ? 74 : 116,
-            fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) => const _FallbackLogo(),
-          ),
+          child: DiluchLogo(height: compact ? 86 : 142),
         ),
         const SizedBox(height: 16),
         Text(
@@ -68,12 +88,12 @@ class _FallbackLogo extends StatelessWidget {
     return const Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.spa_outlined, color: AppColors.turquoise, size: 46),
+        Icon(Icons.spa_outlined, color: AppColors.blue, size: 46),
         SizedBox(height: 8),
         Text(
           'ДИЛУЧ',
           style: TextStyle(
-            color: Colors.white,
+            color: AppColors.blue,
             fontSize: 30,
             fontWeight: FontWeight.w900,
             letterSpacing: 2,
