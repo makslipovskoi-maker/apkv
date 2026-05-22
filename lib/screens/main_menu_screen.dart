@@ -29,6 +29,7 @@ class MainMenuScreen extends StatelessWidget {
       case UserRole.registrar:
         return [
           notifications,
+          _MenuItem('График на неделю', 'Все рейсы на ближайшие 7 дней', Icons.calendar_view_week_outlined, () => ScheduleScreen(user: user, mode: ScheduleMode.week)),
           _MenuItem('Заявки', 'Новые заявки от корпусов', Icons.assignment_outlined, () => RequestsScreen(user: user)),
           _MenuItem('Главный график', 'Все рейсы и выезды', Icons.calendar_month_outlined, () => ScheduleScreen(user: user, mode: ScheduleMode.all)),
           _MenuItem('Создать рейс', 'Назначить время, машину и водителя', Icons.add_road_outlined, () => CreateTripScreen(user: user)),
@@ -87,9 +88,7 @@ class MainMenuScreen extends StatelessWidget {
           IconButton(
             tooltip: 'Выйти',
             icon: const Icon(Icons.logout),
-            onPressed: () => Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (_) => const LoginScreen()),
-            ),
+            onPressed: () => Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const LoginScreen())),
           ),
         ],
       ),
@@ -186,10 +185,7 @@ class _DashboardTile extends StatelessWidget {
               Container(
                 width: 58,
                 height: 58,
-                decoration: BoxDecoration(
-                  color: AppColors.lightTurquoise,
-                  borderRadius: BorderRadius.circular(20),
-                ),
+                decoration: BoxDecoration(color: AppColors.lightTurquoise, borderRadius: BorderRadius.circular(20)),
                 child: Icon(item.icon, color: AppColors.blue, size: 30),
               ),
               const SizedBox(width: 16),
@@ -198,27 +194,9 @@ class _DashboardTile extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      item.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: AppColors.deepBlue,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
+                    Text(item.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: AppColors.deepBlue, fontSize: 18, fontWeight: FontWeight.w900)),
                     const SizedBox(height: 5),
-                    Text(
-                      item.subtitle,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: AppColors.gray,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                    Text(item.subtitle, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: AppColors.gray, fontSize: 14, fontWeight: FontWeight.w700)),
                   ],
                 ),
               ),
