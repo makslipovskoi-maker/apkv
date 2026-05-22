@@ -1,0 +1,41 @@
+plugins {
+    id "com.android.application"
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+android {
+    namespace = "ru.diluch.sanatorium_trips"
+    compileSdk = flutter.compileSdkVersion
+    ndkVersion = flutter.ndkVersion
+
+    defaultConfig {
+        applicationId = "ru.diluch.sanatorium_trips"
+        minSdk = 23
+        targetSdk = flutter.targetSdkVersion
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
+    }
+
+    signingConfigs {
+        release {
+            // Для внутренней первой версии используется debug-подпись.
+            // Для публикации замените на key.properties и release keystore.
+            storeFile = debug.storeFile
+            storePassword = debug.storePassword
+            keyAlias = debug.keyAlias
+            keyPassword = debug.keyPassword
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.release
+            shrinkResources = false
+            minifyEnabled = false
+        }
+    }
+}
+
+flutter {
+    source = "../.."
+}
