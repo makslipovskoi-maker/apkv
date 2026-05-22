@@ -29,31 +29,45 @@ jobs:
         run: |
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-36" "build-tools;36.0.0"
 
-      - name: Restore Android project files
-        run: flutter create . --platforms=android --project-name sanatorium_trips --org ru.diluch
-
-      - name: Patch Android Java/Kotlin target
+      - name: Recreate Android project
         run: |
-          find android -name "*.gradle.kts" -delete
+          rm -rf android
+          flutter create . --platforms=android --project-name sanatorium_trips --org ru.diluch
 
+      - name: Patch Android Gradle Plugin and Java/Kotlin
+        run: |
           python3 <<'PY'
           from pathlib import Path
           import re
 
-          p = Path("android/app/build.gradle")
-          s = p.read_text()
+          settings = Path("android/settings.gradle")
+          s = settings.read_text()
+          s = re.sub(
+              r'id\s+["\']com\.android\.application["\']\s+version\s+["\'][^"\']+["\']',
+              'id "com.android.application" version "8.9.1"',
+              s
+          )
+          s = re.sub(
+              r'id\s+["\']org\.jetbrains\.kotlin\.android["\']\s+version\s+["\'][^"\']+["\']',
+              'id "org.jetbrains.kotlin.android" version "2.0.20"',
+              s
+          )
+          settings.write_text(s)
 
-          s = re.sub(r"compileSdk\s*=\s*flutter\.compileSdkVersion", "compileSdk = 36", s)
-          s = re.sub(r"targetSdk\s*=\s*flutter\.targetSdkVersion", "targetSdk = 35", s)
+          app = Path("android/app/build.gradle")
+          a = app.read_text()
 
-          s = s.replace("JavaVersion.VERSION_1_8", "JavaVersion.VERSION_17")
-          s = re.sub(r'jvmTarget\s*=\s*["\']1\.8["\']', 'jvmTarget = "17"', s)
-          s = re.sub(r'jvmTarget\s*=\s*JavaVersion\.VERSION_17', 'jvmTarget = "17"', s)
+          a = re.sub(r"compileSdk\s*=\s*flutter\.compileSdkVersion", "compileSdk = 36", a)
+          a = re.sub(r"targetSdk\s*=\s*flutter\.targetSdkVersion", "targetSdk = 35", a)
 
-          if "compileOptions" not in s:
-              s = s.replace(
-                  "    defaultConfig {",
-                  """    compileOptions {
+          a = a.replace("JavaVersion.VERSION_1_8", "JavaVersion.VERSION_17")
+          a = a.replace("JavaVersion.VERSION_11", "JavaVersion.VERSION_17")
+
+          if "compileOptions" not in a:
+              a = a.replace(
+                  "android {",
+                  """android {
+              compileOptions {
                   sourceCompatibility = JavaVersion.VERSION_17
                   targetCompatibility = JavaVersion.VERSION_17
               }
@@ -61,13 +75,11 @@ jobs:
               kotlinOptions {
                   jvmTarget = "17"
               }
-
-              defaultConfig {""",
+          """,
                   1
               )
-
-          if "kotlinOptions" not in s:
-              s = s.replace(
+          elif "kotlinOptions" not in a:
+              a = a.replace(
                   "    defaultConfig {",
                   """    kotlinOptions {
                   jvmTarget = "17"
@@ -77,14 +89,31 @@ jobs:
                   1
               )
 
-          p.write_text(s)
+          a = re.sub(r'jvmTarget\s*=\s*["\'][^"\']+["\']', 'jvmTarget = "17"', a)
+
+          app.write_text(a)
+
+          wrapper = Path("android/gradle/wrapper/gradle-wrapper.properties")
+          w = wrapper.read_text()
+          w = re.sub(
+              r"distributionUrl=.*",
+              "distributionUrl=https\\://services.gradle.org/distributions/gradle-8.11.1-bin.zip",
+              w
+          )
+          wrapper.write_text(w)
           PY
+
+      - name: Show Android versions
+        run: |
+          cat android/settings.gradle
+          cat android/app/build.gradle
+          cat android/gradle/wrapper/gradle-wrapper.properties
 
       - name: Install dependencies
         run: flutter pub get
 
       - name: Build APK
-        run: flutter build apk --release --no-tree-shake-icons
+        run: flutter build apk --release --no-tree-shake-icons --android-skip-build-dependency-validation
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
