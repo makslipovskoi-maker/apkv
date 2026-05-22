@@ -1,27 +1,163 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 
-import '../assets/diluch_logo_data.dart';
 import '../core/constants.dart';
 import '../theme/app_theme.dart';
 
 class DiluchLogo extends StatelessWidget {
-  const DiluchLogo({super.key, this.height = 110, this.fit = BoxFit.contain});
+  const DiluchLogo({super.key, this.height = 120});
 
   final double height;
-  final BoxFit fit;
 
   @override
   Widget build(BuildContext context) {
-    return Image.memory(
-      base64Decode(diluchLogoWebpBase64),
+    final scale = height / 230;
+    return SizedBox(
       height: height,
-      fit: fit,
-      gaplessPlayback: true,
-      errorBuilder: (_, __, ___) => const _FallbackLogo(),
+      child: FittedBox(
+        fit: BoxFit.contain,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 210,
+              height: 64,
+              child: Stack(
+                alignment: Alignment.center,
+                children: const [
+                  Positioned(left: 18, child: _LogoCircle(kind: 0)),
+                  Positioned(left: 73, child: _LogoCircle(kind: 1)),
+                  Positioned(left: 128, child: _LogoCircle(kind: 2)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'ДИЛУЧ',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppColors.blue,
+                fontSize: 54,
+                height: 0.9,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -2.4,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'САНАТОРНО-КУРОРТНЫЙ\nКОМПЛЕКС',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppColors.blue,
+                fontSize: 13,
+                height: 1.25,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 4.2,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              '★ ★ ★',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppColors.blue,
+                fontSize: 18 * scale.clamp(0.85, 1.1),
+                fontWeight: FontWeight.w900,
+                letterSpacing: 6,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
+}
+
+class _LogoCircle extends StatelessWidget {
+  const _LogoCircle({required this.kind});
+
+  final int kind;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipOval(
+      child: Container(
+        width: 64,
+        height: 64,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: switch (kind) {
+              0 => const [Color(0xFF19285E), Color(0xFF32B6D2)],
+              1 => const [Color(0xFF8EE5EF), Color(0xFFFFD06F)],
+              _ => const [Color(0xFFFF9F4A), Color(0xFF91DCA3)],
+            },
+          ),
+        ),
+        child: CustomPaint(painter: _LogoCirclePainter(kind)),
+      ),
+    );
+  }
+}
+
+class _LogoCirclePainter extends CustomPainter {
+  const _LogoCirclePainter(this.kind);
+
+  final int kind;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final white = Paint()..color = Colors.white.withValues(alpha: 0.78);
+    final blue = Paint()..color = AppColors.blue.withValues(alpha: 0.28);
+    final green = Paint()..color = const Color(0xFF61B978).withValues(alpha: 0.75);
+    final sun = Paint()..color = const Color(0xFFFFD46A).withValues(alpha: 0.9);
+
+    if (kind == 0) {
+      final star = Paint()..color = const Color(0xFFFFE27A);
+      for (final offset in const [Offset(18, 20), Offset(33, 15), Offset(45, 30)]) {
+        canvas.drawCircle(offset, 2.2, star);
+      }
+      final path = Path()
+        ..moveTo(0, size.height * .70)
+        ..quadraticBezierTo(size.width * .35, size.height * .58, size.width, size.height * .70)
+        ..lineTo(size.width, size.height)
+        ..lineTo(0, size.height)
+        ..close();
+      canvas.drawPath(path, blue);
+    } else if (kind == 1) {
+      final wave = Path()
+        ..moveTo(0, 26)
+        ..cubicTo(12, 36, 24, 18, 36, 28)
+        ..cubicTo(48, 38, 58, 24, 64, 28)
+        ..lineTo(64, 64)
+        ..lineTo(0, 64)
+        ..close();
+      canvas.drawPath(wave, white);
+      final sea = Path()
+        ..moveTo(0, 38)
+        ..quadraticBezierTo(20, 30, 40, 38)
+        ..quadraticBezierTo(52, 43, 64, 36)
+        ..lineTo(64, 64)
+        ..lineTo(0, 64)
+        ..close();
+      canvas.drawPath(sea, blue);
+    } else {
+      canvas.drawCircle(const Offset(26, 29), 13, sun);
+      final mountains = Path()
+        ..moveTo(0, 46)
+        ..lineTo(22, 28)
+        ..lineTo(38, 42)
+        ..lineTo(59, 24)
+        ..lineTo(64, 28)
+        ..lineTo(64, 64)
+        ..lineTo(0, 64)
+        ..close();
+      canvas.drawPath(mountains, green);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _LogoCirclePainter oldDelegate) => oldDelegate.kind != kind;
 }
 
 class LogoHeader extends StatelessWidget {
@@ -51,7 +187,7 @@ class LogoHeader extends StatelessWidget {
               ),
             ],
           ),
-          child: DiluchLogo(height: compact ? 86 : 142),
+          child: DiluchLogo(height: compact ? 96 : 166),
         ),
         const SizedBox(height: 16),
         Text(
@@ -76,29 +212,6 @@ class LogoHeader extends StatelessWidget {
             ),
           ),
         ],
-      ],
-    );
-  }
-}
-
-class _FallbackLogo extends StatelessWidget {
-  const _FallbackLogo();
-  @override
-  Widget build(BuildContext context) {
-    return const Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(Icons.spa_outlined, color: AppColors.blue, size: 46),
-        SizedBox(height: 8),
-        Text(
-          'ДИЛУЧ',
-          style: TextStyle(
-            color: AppColors.blue,
-            fontSize: 30,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 2,
-          ),
-        ),
       ],
     );
   }
