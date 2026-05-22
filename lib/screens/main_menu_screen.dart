@@ -12,6 +12,7 @@ import 'login_screen.dart';
 import 'logs/action_log_screen.dart';
 import 'mechanic/mechanic_screen.dart';
 import 'my_requests_screen.dart';
+import 'notifications_screen.dart';
 import 'registrar/create_trip_screen.dart';
 import 'registrar/requests_screen.dart';
 import 'request_form_screen.dart';
@@ -23,9 +24,11 @@ class MainMenuScreen extends StatelessWidget {
   final AppUser user;
 
   List<_MenuItem> _items() {
+    final notifications = _MenuItem('Оповещения', 'Все изменения и важные события', Icons.notifications_active_outlined, () => NotificationsScreen(user: user));
     switch (user.role) {
       case UserRole.registrar:
         return [
+          notifications,
           _MenuItem('Заявки', 'Новые заявки от корпусов', Icons.assignment_outlined, () => RequestsScreen(user: user)),
           _MenuItem('Главный график', 'Все рейсы и выезды', Icons.calendar_month_outlined, () => ScheduleScreen(user: user, mode: ScheduleMode.all)),
           _MenuItem('Создать рейс', 'Назначить время, машину и водителя', Icons.add_road_outlined, () => CreateTripScreen(user: user)),
@@ -39,23 +42,27 @@ class MainMenuScreen extends StatelessWidget {
         ];
       case UserRole.corps:
         return [
+          notifications,
           _MenuItem('Подать заявку', 'Передать гостя регистратору', Icons.post_add_outlined, () => RequestFormScreen(user: user)),
           _MenuItem('Изменить / отменить', 'Билеты, время, багаж, отмена', Icons.edit_note_outlined, () => ChangeRequestScreen(user: user)),
           _MenuItem('Мои заявки', 'Статусы заявок корпуса', Icons.list_alt_outlined, () => MyRequestsScreen(user: user)),
         ];
       case UserRole.driver:
         return [
+          notifications,
           _MenuItem('Мои рейсы сегодня', 'Крупные кнопки для работы', Icons.today_outlined, () => DriverTripsScreen(user: user, showTomorrow: false)),
           _MenuItem('Мои рейсы завтра', 'План заранее', Icons.event_outlined, () => DriverTripsScreen(user: user, showTomorrow: true)),
         ];
       case UserRole.mechanic:
         return [
+          notifications,
           _MenuItem('Транспорт сегодня', 'Готовность машин', Icons.directions_bus_outlined, () => MechanicScreen(user: user, showTomorrow: false)),
           _MenuItem('Транспорт завтра', 'Подготовка заранее', Icons.event_available_outlined, () => MechanicScreen(user: user, showTomorrow: true)),
           _MenuItem('Проблемы транспорта', 'Замена, поломки, риски', Icons.car_crash_outlined, () => ScheduleScreen(user: user, mode: ScheduleMode.problems)),
         ];
       case UserRole.manager:
         return [
+          notifications,
           _MenuItem('Главный график', 'Вся картина по выездам', Icons.calendar_month_outlined, () => ScheduleScreen(user: user, mode: ScheduleMode.all)),
           _MenuItem('Панель контроля', 'Цифры, риски, контроль', Icons.dashboard_outlined, () => ControlPanelScreen(user: user)),
           _MenuItem('Журнал изменений', 'Прозрачность действий', Icons.history_outlined, () => ActionLogScreen(user: user)),
@@ -72,6 +79,11 @@ class MainMenuScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(user.role.title),
         actions: [
+          IconButton(
+            tooltip: 'Оповещения',
+            icon: const Icon(Icons.notifications_active_outlined),
+            onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => NotificationsScreen(user: user))),
+          ),
           IconButton(
             tooltip: 'Выйти',
             icon: const Icon(Icons.logout),
@@ -126,9 +138,7 @@ class MainMenuScreen extends StatelessWidget {
                       final item = items[index];
                       return _DashboardTile(
                         item: item,
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => item.builder()),
-                        ),
+                        onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => item.builder())),
                       );
                     },
                   ),
