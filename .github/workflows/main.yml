@@ -39,22 +39,66 @@ jobs:
           python3 <<'PY'
           from pathlib import Path
           import re
+          import os
 
-          settings = Path("android/settings.gradle")
+          settings_files = [
+              Path("android/settings.gradle"),
+              Path("android/settings.gradle.kts"),
+          ]
+
+          settings = next((p for p in settings_files if p.exists()), None)
+          if settings is None:
+              print("Android files:")
+              for root, dirs, files in os.walk("android"):
+                  for f in files:
+                      print(os.path.join(root, f))
+              raise FileNotFoundError("settings.gradle/settings.gradle.kts not found")
+
           s = settings.read_text()
+
           s = re.sub(
-              r'id\s+["\']com\.android\.application["\']\s+version\s+["\'][^"\']+["\']',
+              r'id\("com\.android\.application"\)\s+version\s+"[^"]+"',
+              'id("com.android.application") version "8.9.1"',
+              s
+          )
+          s = re.sub(
+              r"id\s+'com\.android\.application'\s+version\s+'[^']+'",
+              "id 'com.android.application' version '8.9.1'",
+              s
+          )
+          s = re.sub(
+              r'id\s+"com\.android\.application"\s+version\s+"[^"]+"',
               'id "com.android.application" version "8.9.1"',
               s
           )
+
           s = re.sub(
-              r'id\s+["\']org\.jetbrains\.kotlin\.android["\']\s+version\s+["\'][^"\']+["\']',
+              r'id\("org\.jetbrains\.kotlin\.android"\)\s+version\s+"[^"]+"',
+              'id("org.jetbrains.kotlin.android") version "2.0.20"',
+              s
+          )
+          s = re.sub(
+              r"id\s+'org\.jetbrains\.kotlin\.android'\s+version\s+'[^']+'",
+              "id 'org.jetbrains.kotlin.android' version '2.0.20'",
+              s
+          )
+          s = re.sub(
+              r'id\s+"org\.jetbrains\.kotlin\.android"\s+version\s+"[^"]+"',
               'id "org.jetbrains.kotlin.android" version "2.0.20"',
               s
           )
+
           settings.write_text(s)
 
-          app = Path("android/app/build.gradle")
+          app_files = [
+              Path("android/app/build.gradle"),
+              Path("android/app/build.gradle.kts"),
+          ]
+
+          app = next((p for p in app_files if p.exists()), None)
+          if app is None:
+              raise FileNotFoundError("android/app/build.gradle or build.gradle.kts not found")
+
           a = app.read_text()
 
           a = re.sub(r"compileSdk\s*=\s*flutter\.compileSdkVersion", "compileSdk = 36", a)
@@ -62,6 +106,17 @@ jobs:
 
           a = a.replace("JavaVersion.VERSION_1_8", "JavaVersion.VERSION_17")
           a = a.replace("JavaVersion.VERSION_11", "JavaVersion.VERSION_17")
+
+          a = re.sub(
+              r'jvmTarget\s*=\s*JavaVersion\.VERSION_\d+\.toString\(\)',
+              'jvmTarget = "17"',
+              a
+          )
+          a = re.sub(
+              r'jvmTarget\s*=\s*"[^"]+"',
+              'jvmTarget = "17"',
+              a
+          )
 
           if "compileOptions" not in a:
               a = a.replace(
@@ -89,24 +144,26 @@ jobs:
                   1
               )
 
-          a = re.sub(r'jvmTarget\s*=\s*["\'][^"\']+["\']', 'jvmTarget = "17"', a)
-
           app.write_text(a)
 
           wrapper = Path("android/gradle/wrapper/gradle-wrapper.properties")
-          w = wrapper.read_text()
-          w = re.sub(
-              r"distributionUrl=.*",
-              "distributionUrl=https\\://services.gradle.org/distributions/gradle-8.11.1-bin.zip",
-              w
-          )
-          wrapper.write_text(w)
+          if wrapper.exists():
+              w = wrapper.read_text()
+              w = re.sub(
+                  r"distributionUrl=.*",
+                  "distributionUrl=https\\://services.gradle.org/distributions/gradle-8.11.1-bin.zip",
+                  w
+              )
+              wrapper.write_text(w)
           PY
 
       - name: Show Android versions
         run: |
-          cat android/settings.gradle
-          cat android/app/build.gradle
+          echo "===== settings ====="
+          cat android/settings.gradle 2>/dev/null || cat android/settings.gradle.kts
+          echo "===== app build ====="
+          cat android/app/build.gradle 2>/dev/null || cat android/app/build.gradle.kts
+          echo "===== gradle wrapper ====="
           cat android/gradle/wrapper/gradle-wrapper.properties
 
       - name: Install dependencies
