@@ -13,7 +13,7 @@ jobs:
       - name: Checkout project
         uses: actions/checkout@v4
 
-      - name: Setup Java
+      - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -32,11 +32,53 @@ jobs:
       - name: Restore Android project files
         run: flutter create . --platforms=android --project-name sanatorium_trips --org ru.diluch
 
-      - name: Patch Android Gradle settings
+      - name: Patch Android Java/Kotlin target
         run: |
-          sed -i 's/id "com.android.application" version "[^"]*"/id "com.android.application" version "8.9.1"/' android/settings.gradle
-          sed -i 's/compileSdk = flutter.compileSdkVersion/compileSdk = 36/' android/app/build.gradle
-          sed -i 's/targetSdk = flutter.targetSdkVersion/targetSdk = 35/' android/app/build.gradle
+          find android -name "*.gradle.kts" -delete
+
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path("android/app/build.gradle")
+          s = p.read_text()
+
+          s = re.sub(r"compileSdk\s*=\s*flutter\.compileSdkVersion", "compileSdk = 36", s)
+          s = re.sub(r"targetSdk\s*=\s*flutter\.targetSdkVersion", "targetSdk = 35", s)
+
+          s = s.replace("JavaVersion.VERSION_1_8", "JavaVersion.VERSION_17")
+          s = re.sub(r'jvmTarget\s*=\s*["\']1\.8["\']', 'jvmTarget = "17"', s)
+          s = re.sub(r'jvmTarget\s*=\s*JavaVersion\.VERSION_17', 'jvmTarget = "17"', s)
+
+          if "compileOptions" not in s:
+              s = s.replace(
+                  "    defaultConfig {",
+                  """    compileOptions {
+                  sourceCompatibility = JavaVersion.VERSION_17
+                  targetCompatibility = JavaVersion.VERSION_17
+              }
+
+              kotlinOptions {
+                  jvmTarget = "17"
+              }
+
+              defaultConfig {""",
+                  1
+              )
+
+          if "kotlinOptions" not in s:
+              s = s.replace(
+                  "    defaultConfig {",
+                  """    kotlinOptions {
+                  jvmTarget = "17"
+              }
+
+              defaultConfig {""",
+                  1
+              )
+
+          p.write_text(s)
+          PY
 
       - name: Install dependencies
         run: flutter pub get
