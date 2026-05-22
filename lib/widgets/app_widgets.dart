@@ -5,19 +5,15 @@ import '../theme/app_theme.dart';
 
 class LogoHeader extends StatelessWidget {
   const LogoHeader({super.key, this.compact = false});
-
   final bool compact;
 
   @override
   Widget build(BuildContext context) {
-    final maxWidth = compact ? 300.0 : 520.0;
-    final logoHeight = compact ? 74.0 : 116.0;
-
     return Column(
       children: [
         Container(
           width: double.infinity,
-          constraints: BoxConstraints(maxWidth: maxWidth),
+          constraints: BoxConstraints(maxWidth: compact ? 300 : 520),
           padding: EdgeInsets.all(compact ? 12 : 18),
           decoration: BoxDecoration(
             color: AppColors.midnight,
@@ -32,9 +28,9 @@ class LogoHeader extends StatelessWidget {
           ),
           child: Image.asset(
             'assets/logo.jpg',
-            height: logoHeight,
+            height: compact ? 74 : 116,
             fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) => const _FallbackLogo(),
+            errorBuilder: (_, __, ___) => const _FallbackLogo(),
           ),
         ),
         const SizedBox(height: 16),
@@ -51,7 +47,7 @@ class LogoHeader extends StatelessWidget {
         if (!compact) ...[
           const SizedBox(height: 8),
           const Text(
-            'Цифровой график трансферов и выездов гостей',
+            appSubtitle,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 17,
@@ -67,7 +63,6 @@ class LogoHeader extends StatelessWidget {
 
 class _FallbackLogo extends StatelessWidget {
   const _FallbackLogo();
-
   @override
   Widget build(BuildContext context) {
     return const Column(
@@ -90,13 +85,7 @@ class _FallbackLogo extends StatelessWidget {
 }
 
 class AppPage extends StatelessWidget {
-  const AppPage({
-    super.key,
-    required this.title,
-    required this.child,
-    this.actions,
-  });
-
+  const AppPage({super.key, required this.title, required this.child, this.actions});
   final String title;
   final Widget child;
   final List<Widget>? actions;
@@ -108,10 +97,7 @@ class AppPage extends StatelessWidget {
       body: Container(
         decoration: const BoxDecoration(gradient: appBackgroundGradient),
         child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: child,
-          ),
+          child: Padding(padding: const EdgeInsets.all(16), child: child),
         ),
       ),
     );
@@ -119,13 +105,7 @@ class AppPage extends StatelessWidget {
 }
 
 class PremiumHeroCard extends StatelessWidget {
-  const PremiumHeroCard({
-    super.key,
-    required this.title,
-    required this.subtitle,
-    this.trailing,
-  });
-
+  const PremiumHeroCard({super.key, required this.title, required this.subtitle, this.trailing});
   final String title;
   final String subtitle;
   final Widget? trailing;
@@ -147,7 +127,6 @@ class PremiumHeroCard extends StatelessWidget {
         ],
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
             child: Column(
@@ -176,7 +155,7 @@ class PremiumHeroCard extends StatelessWidget {
                 Text(
                   subtitle,
                   style: const TextStyle(
-                    color: Color(0xDDEFFFFFF),
+                    color: Color(0xDDEFFFFF),
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     height: 1.35,
@@ -185,10 +164,7 @@ class PremiumHeroCard extends StatelessWidget {
               ],
             ),
           ),
-          if (trailing != null) ...[
-            const SizedBox(width: 14),
-            trailing!,
-          ],
+          if (trailing != null) ...[const SizedBox(width: 14), trailing!],
         ],
       ),
     );
@@ -196,12 +172,7 @@ class PremiumHeroCard extends StatelessWidget {
 }
 
 class EmptyState extends StatelessWidget {
-  const EmptyState({
-    super.key,
-    required this.text,
-    this.icon = Icons.inbox_outlined,
-  });
-
+  const EmptyState({super.key, required this.text, this.icon = Icons.inbox_outlined});
   final String text;
   final IconData icon;
 
@@ -235,34 +206,18 @@ class EmptyState extends StatelessWidget {
 
 class StatusBadge extends StatelessWidget {
   const StatusBadge({super.key, required this.status});
-
   final String status;
 
   @override
   Widget build(BuildContext context) {
     final color = statusColor(status);
-    final foreground =
-        color.computeLuminance() > 0.55 ? AppColors.deepBlue : Colors.white;
+    final foreground = color.computeLuminance() > 0.55 ? AppColors.deepBlue : Colors.white;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(999),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.22),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
+      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(999)),
       child: Text(
         status,
-        style: TextStyle(
-          color: foreground,
-          fontWeight: FontWeight.w900,
-          fontSize: 14,
-        ),
+        style: TextStyle(color: foreground, fontWeight: FontWeight.w900, fontSize: 14),
       ),
     );
   }
@@ -270,7 +225,6 @@ class StatusBadge extends StatelessWidget {
 
 class InfoRow extends StatelessWidget {
   const InfoRow(this.label, this.value, {super.key, this.icon});
-
   final String label;
   final String? value;
   final IconData? icon;
@@ -299,21 +253,13 @@ class InfoRow extends StatelessWidget {
             width: 118,
             child: Text(
               label,
-              style: const TextStyle(
-                fontSize: 15,
-                color: AppColors.gray,
-                fontWeight: FontWeight.w800,
-              ),
+              style: const TextStyle(fontSize: 15, color: AppColors.gray, fontWeight: FontWeight.w800),
             ),
           ),
           Expanded(
             child: Text(
               display,
-              style: const TextStyle(
-                fontSize: 17,
-                color: AppColors.deepBlue,
-                fontWeight: FontWeight.w800,
-              ),
+              style: const TextStyle(fontSize: 17, color: AppColors.deepBlue, fontWeight: FontWeight.w800),
             ),
           ),
         ],
@@ -323,14 +269,7 @@ class InfoRow extends StatelessWidget {
 }
 
 class BigActionButton extends StatelessWidget {
-  const BigActionButton({
-    super.key,
-    required this.label,
-    required this.onPressed,
-    this.color,
-    this.icon,
-  });
-
+  const BigActionButton({super.key, required this.label, required this.onPressed, this.color, this.icon});
   final String label;
   final VoidCallback? onPressed;
   final Color? color;
@@ -342,10 +281,7 @@ class BigActionButton extends StatelessWidget {
       padding: const EdgeInsets.only(top: 10),
       child: ElevatedButton.icon(
         icon: Icon(icon ?? Icons.check_circle_outline, size: 28),
-        label: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          child: Text(label),
-        ),
+        label: Padding(padding: const EdgeInsets.symmetric(vertical: 14), child: Text(label)),
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: color ?? AppColors.blue,
@@ -360,11 +296,6 @@ class BigActionButton extends StatelessWidget {
 void showAppMessage(BuildContext context, String message) {
   if (!context.mounted) return;
   ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text(message),
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      margin: const EdgeInsets.all(16),
-    ),
+    SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
   );
 }
