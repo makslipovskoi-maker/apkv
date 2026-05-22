@@ -1,3 +1,3 @@
 Trigger GitHub Actions APK build.
 Demo mode is enabled when Supabase variables are not configured.
-Fresh run must include Diluch logo on splash screen.
+Fresh run must include embedded Diluch logo instead of old demo picture.
