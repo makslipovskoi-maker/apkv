@@ -1,3 +1,1 @@
-Trigger GitHub Actions APK build.
-Demo mode is enabled when Supabase variables are not configured.
-Fresh run must include safe Flutter logo widget and no base64 image decoding.
+rebuild
