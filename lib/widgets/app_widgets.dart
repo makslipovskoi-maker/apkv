@@ -24,7 +24,7 @@ class LogoHeader extends StatelessWidget {
             borderRadius: BorderRadius.circular(compact ? 22 : 30),
             boxShadow: [
               BoxShadow(
-                color: AppColors.blue.withOpacity(0.18),
+                color: AppColors.blue.withValues(alpha: 0.18),
                 blurRadius: 30,
                 offset: const Offset(0, 14),
               ),
@@ -140,7 +140,7 @@ class PremiumHeroCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
-            color: AppColors.blue.withOpacity(0.22),
+            color: AppColors.blue.withValues(alpha: 0.22),
             blurRadius: 34,
             offset: const Offset(0, 18),
           ),
@@ -250,7 +250,7 @@ class StatusBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.22),
+            color: color.withValues(alpha: 0.22),
             blurRadius: 16,
             offset: const Offset(0, 8),
           ),
