@@ -55,7 +55,7 @@ class _SplashScreenState extends State<SplashScreen> {
                           ),
                         ],
                       ),
-                      child: const DiluchLogo(height: 230),
+                      child: const DiluchLogo(),
                     ),
                     const SizedBox(height: 28),
                     const Text(
