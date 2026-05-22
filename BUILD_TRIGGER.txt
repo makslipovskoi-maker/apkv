@@ -1,0 +1,2 @@
+Trigger GitHub Actions APK build.
+Demo mode is enabled when Supabase variables are not configured.
