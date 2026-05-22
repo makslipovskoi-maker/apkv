@@ -30,6 +30,11 @@ jobs:
       - name: Restore generated Android files if needed
         run: flutter create . --platforms android --project-name sanatorium_trips --org ru.diluch
 
+      - name: Use Diluch launcher icon
+        run: |
+          sed -i 's/@mipmap\/ic_launcher/@drawable\/ic_diluch_launcher/g' android/app/src/main/AndroidManifest.xml
+          grep -n 'android:icon' android/app/src/main/AndroidManifest.xml
+
       - name: Stabilize generated Flutter test
         run: |
           mkdir -p test
@@ -50,7 +55,7 @@ jobs:
         run: flutter analyze
 
       - name: Build release APK
-        run: flutter build apk --release --no-tree-shake-icons
+        run: flutter build apk --release --no-tree-shake-icons --android-skip-build-dependency-validation
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
