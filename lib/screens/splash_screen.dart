@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../core/constants.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_widgets.dart';
 import 'login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -54,27 +55,7 @@ class _SplashScreenState extends State<SplashScreen> {
                           ),
                         ],
                       ),
-                      child: Image.asset(
-                        'assets/logo.jpg',
-                        height: 230,
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.image_not_supported_outlined, color: AppColors.blue, size: 46),
-                            SizedBox(height: 10),
-                            Text(
-                              'ДИЛУЧ',
-                              style: TextStyle(
-                                color: AppColors.blue,
-                                fontSize: 36,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 2,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      child: const DiluchLogo(height: 230),
                     ),
                     const SizedBox(height: 28),
                     const Text(
