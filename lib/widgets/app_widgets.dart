@@ -4,160 +4,55 @@ import '../core/constants.dart';
 import '../theme/app_theme.dart';
 
 class DiluchLogo extends StatelessWidget {
-  const DiluchLogo({super.key, this.height = 120});
+  const DiluchLogo({super.key, this.compact = false});
 
-  final double height;
-
-  @override
-  Widget build(BuildContext context) {
-    final scale = height / 230;
-    return SizedBox(
-      height: height,
-      child: FittedBox(
-        fit: BoxFit.contain,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: 210,
-              height: 64,
-              child: Stack(
-                alignment: Alignment.center,
-                children: const [
-                  Positioned(left: 18, child: _LogoCircle(kind: 0)),
-                  Positioned(left: 73, child: _LogoCircle(kind: 1)),
-                  Positioned(left: 128, child: _LogoCircle(kind: 2)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'ДИЛУЧ',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: AppColors.blue,
-                fontSize: 54,
-                height: 0.9,
-                fontWeight: FontWeight.w900,
-                letterSpacing: -2.4,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'САНАТОРНО-КУРОРТНЫЙ\nКОМПЛЕКС',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: AppColors.blue,
-                fontSize: 13,
-                height: 1.25,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 4.2,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              '★ ★ ★',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: AppColors.blue,
-                fontSize: 18 * scale.clamp(0.85, 1.1),
-                fontWeight: FontWeight.w900,
-                letterSpacing: 6,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _LogoCircle extends StatelessWidget {
-  const _LogoCircle({required this.kind});
-
-  final int kind;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
-    return ClipOval(
-      child: Container(
-        width: 64,
-        height: 64,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: switch (kind) {
-              0 => const [Color(0xFF19285E), Color(0xFF32B6D2)],
-              1 => const [Color(0xFF8EE5EF), Color(0xFFFFD06F)],
-              _ => const [Color(0xFFFF9F4A), Color(0xFF91DCA3)],
-            },
+    return Semantics(
+      label: 'Логотип ДиЛУЧ',
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'ДИЛУЧ',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: AppColors.blue,
+              fontSize: compact ? 38 : 54,
+              height: 0.96,
+              fontWeight: FontWeight.w900,
+              letterSpacing: compact ? -1.2 : -2.0,
+            ),
           ),
-        ),
-        child: CustomPaint(painter: _LogoCirclePainter(kind)),
+          SizedBox(height: compact ? 7 : 10),
+          Text(
+            'САНАТОРНО-КУРОРТНЫЙ КОМПЛЕКС',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: AppColors.blue,
+              fontSize: compact ? 8.5 : 12,
+              height: 1.25,
+              fontWeight: FontWeight.w900,
+              letterSpacing: compact ? 2.1 : 3.4,
+            ),
+          ),
+          SizedBox(height: compact ? 6 : 10),
+          Text(
+            '★ ★ ★',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: AppColors.blue,
+              fontSize: compact ? 12 : 17,
+              fontWeight: FontWeight.w900,
+              letterSpacing: compact ? 4 : 6,
+            ),
+          ),
+        ],
       ),
     );
   }
-}
-
-class _LogoCirclePainter extends CustomPainter {
-  const _LogoCirclePainter(this.kind);
-
-  final int kind;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final white = Paint()..color = Colors.white.withValues(alpha: 0.78);
-    final blue = Paint()..color = AppColors.blue.withValues(alpha: 0.28);
-    final green = Paint()..color = const Color(0xFF61B978).withValues(alpha: 0.75);
-    final sun = Paint()..color = const Color(0xFFFFD46A).withValues(alpha: 0.9);
-
-    if (kind == 0) {
-      final star = Paint()..color = const Color(0xFFFFE27A);
-      for (final offset in const [Offset(18, 20), Offset(33, 15), Offset(45, 30)]) {
-        canvas.drawCircle(offset, 2.2, star);
-      }
-      final path = Path()
-        ..moveTo(0, size.height * .70)
-        ..quadraticBezierTo(size.width * .35, size.height * .58, size.width, size.height * .70)
-        ..lineTo(size.width, size.height)
-        ..lineTo(0, size.height)
-        ..close();
-      canvas.drawPath(path, blue);
-    } else if (kind == 1) {
-      final wave = Path()
-        ..moveTo(0, 26)
-        ..cubicTo(12, 36, 24, 18, 36, 28)
-        ..cubicTo(48, 38, 58, 24, 64, 28)
-        ..lineTo(64, 64)
-        ..lineTo(0, 64)
-        ..close();
-      canvas.drawPath(wave, white);
-      final sea = Path()
-        ..moveTo(0, 38)
-        ..quadraticBezierTo(20, 30, 40, 38)
-        ..quadraticBezierTo(52, 43, 64, 36)
-        ..lineTo(64, 64)
-        ..lineTo(0, 64)
-        ..close();
-      canvas.drawPath(sea, blue);
-    } else {
-      canvas.drawCircle(const Offset(26, 29), 13, sun);
-      final mountains = Path()
-        ..moveTo(0, 46)
-        ..lineTo(22, 28)
-        ..lineTo(38, 42)
-        ..lineTo(59, 24)
-        ..lineTo(64, 28)
-        ..lineTo(64, 64)
-        ..lineTo(0, 64)
-        ..close();
-      canvas.drawPath(mountains, green);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _LogoCirclePainter oldDelegate) => oldDelegate.kind != kind;
 }
 
 class LogoHeader extends StatelessWidget {
@@ -172,8 +67,8 @@ class LogoHeader extends StatelessWidget {
           width: double.infinity,
           constraints: BoxConstraints(maxWidth: compact ? 330 : 520),
           padding: EdgeInsets.symmetric(
-            horizontal: compact ? 18 : 24,
-            vertical: compact ? 14 : 22,
+            horizontal: compact ? 18 : 26,
+            vertical: compact ? 18 : 28,
           ),
           decoration: BoxDecoration(
             color: Colors.white,
@@ -187,7 +82,7 @@ class LogoHeader extends StatelessWidget {
               ),
             ],
           ),
-          child: DiluchLogo(height: compact ? 96 : 166),
+          child: DiluchLogo(compact: compact),
         ),
         const SizedBox(height: 16),
         Text(
@@ -238,7 +133,12 @@ class AppPage extends StatelessWidget {
 }
 
 class PremiumHeroCard extends StatelessWidget {
-  const PremiumHeroCard({super.key, required this.title, required this.subtitle, this.trailing});
+  const PremiumHeroCard({
+    super.key,
+    required this.title,
+    required this.subtitle,
+    this.trailing,
+  });
   final String title;
   final String subtitle;
   final Widget? trailing;
@@ -305,7 +205,11 @@ class PremiumHeroCard extends StatelessWidget {
 }
 
 class EmptyState extends StatelessWidget {
-  const EmptyState({super.key, required this.text, this.icon = Icons.inbox_outlined});
+  const EmptyState({
+    super.key,
+    required this.text,
+    this.icon = Icons.inbox_outlined,
+  });
   final String text;
   final IconData icon;
 
@@ -350,7 +254,11 @@ class StatusBadge extends StatelessWidget {
       decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(999)),
       child: Text(
         status,
-        style: TextStyle(color: foreground, fontWeight: FontWeight.w900, fontSize: 14),
+        style: TextStyle(
+          color: foreground,
+          fontWeight: FontWeight.w900,
+          fontSize: 14,
+        ),
       ),
     );
   }
@@ -386,13 +294,21 @@ class InfoRow extends StatelessWidget {
             width: 118,
             child: Text(
               label,
-              style: const TextStyle(fontSize: 15, color: AppColors.gray, fontWeight: FontWeight.w800),
+              style: const TextStyle(
+                fontSize: 15,
+                color: AppColors.gray,
+                fontWeight: FontWeight.w800,
+              ),
             ),
           ),
           Expanded(
             child: Text(
               display,
-              style: const TextStyle(fontSize: 17, color: AppColors.deepBlue, fontWeight: FontWeight.w800),
+              style: const TextStyle(
+                fontSize: 17,
+                color: AppColors.deepBlue,
+                fontWeight: FontWeight.w800,
+              ),
             ),
           ),
         ],
@@ -402,7 +318,13 @@ class InfoRow extends StatelessWidget {
 }
 
 class BigActionButton extends StatelessWidget {
-  const BigActionButton({super.key, required this.label, required this.onPressed, this.color, this.icon});
+  const BigActionButton({
+    super.key,
+    required this.label,
+    required this.onPressed,
+    this.color,
+    this.icon,
+  });
   final String label;
   final VoidCallback? onPressed;
   final Color? color;
@@ -414,7 +336,10 @@ class BigActionButton extends StatelessWidget {
       padding: const EdgeInsets.only(top: 10),
       child: ElevatedButton.icon(
         icon: Icon(icon ?? Icons.check_circle_outline, size: 28),
-        label: Padding(padding: const EdgeInsets.symmetric(vertical: 14), child: Text(label)),
+        label: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          child: Text(label),
+        ),
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: color ?? AppColors.blue,
