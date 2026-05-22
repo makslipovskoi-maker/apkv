@@ -30,7 +30,6 @@ class _ControlPanelScreenState extends State<ControlPanelScreen> {
   Future<_ControlData> _load() async {
     final today = await _repo.trips(date: todayOnly());
     final tomorrow = await _repo.trips(date: tomorrowOnly());
-    final all = [...today, ...tomorrow];
     return _ControlData(today: today, tomorrow: tomorrow);
   }
 
