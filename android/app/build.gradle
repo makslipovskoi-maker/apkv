@@ -3,10 +3,29 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
+def internalKeystoreFile = file("internal-release.keystore")
+
+if (!internalKeystoreFile.exists()) {
+    def keytoolExecutable = System.getProperty("java.home") + File.separator + "bin" + File.separator + "keytool"
+    exec {
+        commandLine keytoolExecutable,
+                "-genkeypair",
+                "-v",
+                "-keystore", internalKeystoreFile.absolutePath,
+                "-storepass", "android",
+                "-keypass", "android",
+                "-alias", "androidreleasekey",
+                "-keyalg", "RSA",
+                "-keysize", "2048",
+                "-validity", "10000",
+                "-dname", "CN=Diluch Internal,O=Diluch,C=RU"
+    }
+}
+
 android {
     namespace = "ru.diluch.sanatorium_trips"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "27.0.12077973"
 
     defaultConfig {
         applicationId = "ru.diluch.sanatorium_trips"
@@ -18,12 +37,10 @@ android {
 
     signingConfigs {
         release {
-            // Для внутренней первой версии используется debug-подпись.
-            // Для публикации замените на key.properties и release keystore.
-            storeFile = debug.storeFile
-            storePassword = debug.storePassword
-            keyAlias = debug.keyAlias
-            keyPassword = debug.keyPassword
+            storeFile = internalKeystoreFile
+            storePassword = "android"
+            keyAlias = "androidreleasekey"
+            keyPassword = "android"
         }
     }
 
